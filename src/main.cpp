@@ -45,8 +45,12 @@ int main()
     dt = curTime = lastTime = 0.0f;
 
     // Initializing Camera object
-    framework::camera = std::make_unique<framework::Camera>(glm::vec3(0.f, 15.f, 5.f));
+    framework::camera = std::make_unique<framework::Camera>(glm::vec3(0.f, 15.f, 100.f));
     
+
+    /**
+     * Loading heightmap and fetching the vertices and indices from it
+     */
     framework::Heightmap map(framework::HEIGHTMAPPATH);
 
     framework::VertexArray vao;			                // Initializing vao
@@ -60,9 +64,16 @@ int main()
 
     vao.AddBuffer(vbo, vbl);					// Populating the vertex buffer
 
+    // Creating sun entity and loading it's texture
+    framework::Texture sunTexture(framework::SUNTEXTUREPATH);
+    framework::Entity sun(glm::vec3(0.f, 500.f, 540), framework::SUNMODELPATH);
+    sun.SetScale(glm::vec3(0.01f));
+
+    // Loading shader for light sources
     framework::Shader lightSrcShader(framework::VERTLIGHTSRCSHADERPATH, framework::FRAGLIGHTSRCSHADERPATH);
 
-    auto groundModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
+    // Model matrix for heightmap terrain as well as projection matrix
+    auto terrainModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
     auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 1000.f);
 
 
@@ -80,11 +91,16 @@ int main()
 
         ProcessInput(window, dt);
 
-        lightSrcShader.SetUniform1i("u_Textured", 0);
-        lightSrcShader.SetUniformMat4f("u_Model", groundModelMatrix);
-        lightSrcShader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
-        lightSrcShader.SetUniformMat4f("u_Projection", proj);
+        /**
+         * Draw calls for terrain and sun
+         */
 
+        sunTexture.Bind();
+        lightSrcShader.SetUniform1i("u_Textured", 1);
+        sun.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
+
+        lightSrcShader.SetUniform1i("u_Textured", 0);
+        lightSrcShader.SetUniformMat4f("u_Model", terrainModelMatrix);
         renderer.Draw(vao, ibo, lightSrcShader);
 
         glfwSwapBuffers(window);
