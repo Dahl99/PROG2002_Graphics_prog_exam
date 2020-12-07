@@ -44,12 +44,10 @@ int main()
     static GLfloat dt, curTime, lastTime;
     dt = curTime = lastTime = 0.0f;
 
-    framework::Heightmap map(framework::HEIGHTMAPPATH);
-
     // Initializing Camera object
     framework::camera = std::make_unique<framework::Camera>(glm::vec3(0.f, 15.f, 5.f));
-
-    framework::Entity cube(glm::vec3(0.f), "../res/models/cube/cube.obj");
+    
+    framework::Heightmap map(framework::HEIGHTMAPPATH);
 
     framework::VertexArray vao;			                // Initializing vao
     framework::VertexBuffer vbo(map.GetVertices());     // Initializing vbo
@@ -62,14 +60,10 @@ int main()
 
     vao.AddBuffer(vbo, vbl);					// Populating the vertex buffer
 
-    framework::Texture grassTexture("../res/textures/grass.png");
-    framework::Texture dirtTexture("../res/textures/dirt.png");
-    framework::Texture mountainTexture("../res/textures/mountain_rock.png");
-
-    framework::Shader shader(framework::VERTLIGHTSRCSHADERPATH, framework::FRAGLIGHTSRCSHADERPATH);
+    framework::Shader lightSrcShader(framework::VERTLIGHTSRCSHADERPATH, framework::FRAGLIGHTSRCSHADERPATH);
 
     auto groundModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
-    auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 100.f);
+    auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 1000.f);
 
 
 //------------------------------------------------------------------------------------
@@ -85,12 +79,13 @@ int main()
         renderer.Clear();   // Clearing screen
 
         ProcessInput(window, dt);
-       
-        grassTexture.Bind();
-        cube.Draw(shader, framework::camera->GetViewMatrix(), proj);
 
-        shader.SetUniformMat4f("u_Model", groundModelMatrix);
-        renderer.Draw(vao, ibo, shader);
+        lightSrcShader.SetUniform1i("u_Textured", 0);
+        lightSrcShader.SetUniformMat4f("u_Model", groundModelMatrix);
+        lightSrcShader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
+        lightSrcShader.SetUniformMat4f("u_Projection", proj);
+
+        renderer.Draw(vao, ibo, lightSrcShader);
 
         glfwSwapBuffers(window);
 

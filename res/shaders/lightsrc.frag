@@ -2,6 +2,7 @@
 
 /** Inputs */
 in vec2 v_TexCoords;
+in vec4 v_Color;
 
 /** Outputs */
 out vec4 FragColor;
@@ -12,6 +13,11 @@ layout(binding = 0) uniform sampler2D u_Texture;
 
 void main()
 {
-	vec4 texColor = texture(u_Texture, v_TexCoords);
-	FragColor = texColor;
+	vec4 color;
+	if (v_Color.x == 0.0)
+		color = texture(u_Texture, v_TexCoords);
+	else
+		color = v_Color;
+
+	FragColor = color;
 }

@@ -2,7 +2,7 @@
 
 namespace framework {
 	Camera::Camera(glm::vec3 Position, glm::vec3 Up, float Yaw, float Pitch)
-		: Front(glm::vec3(0.f, 0.f, -1.f)), MovementSpeed(3.f), MouseSensitivity(0.1f)
+		: Front(glm::vec3(0.f, 0.f, -1.f)), MovementSpeed(50.f), MouseSensitivity(0.1f)
 	{
 		this->Position = Position;
 		this->WorldUp = Up;
