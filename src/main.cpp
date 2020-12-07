@@ -9,6 +9,7 @@
 #include "framework/texture.hpp"
 #include "framework/renderer.hpp"
 #include "framework/entity.hpp"
+#include "framework/heightmap.hpp"
 
 void ProcessInput(GLFWwindow* window, const float dt);
 
@@ -43,14 +44,32 @@ int main()
     static GLfloat dt, curTime, lastTime;
     dt = curTime = lastTime = 0.0f;
 
+    framework::Heightmap map(framework::HEIGHTMAPPATH);
+
     // Initializing Camera object
-    framework::camera = std::make_unique<framework::Camera>(glm::vec3(0.f, 0.f, 5.f));
+    framework::camera = std::make_unique<framework::Camera>(glm::vec3(0.f, 15.f, 5.f));
 
     framework::Entity cube(glm::vec3(0.f), "../res/models/cube/cube.obj");
-    framework::Texture cubeTexture("../res/models/cube/cubetexture.png");
+
+    framework::VertexArray vao;			                // Initializing vao
+    framework::VertexBuffer vbo(map.GetVertices());     // Initializing vbo
+    framework::IndexBuffer ibo(map.GetIndices());       // Initializing ibo
+
+    framework::VertexBufferLayout vbl;          // Create a vertex buffer layout
+    vbl.Push<GLfloat>(3);                       // Adding position floats to layout
+    vbl.Push<GLfloat>(3);                       // Adding normal floats to layout
+    vbl.Push<GLfloat>(2);                       // Adding tex coords floats to layout
+
+    vao.AddBuffer(vbo, vbl);					// Populating the vertex buffer
+
+    framework::Texture grassTexture("../res/textures/grass.png");
+    framework::Texture dirtTexture("../res/textures/dirt.png");
+    framework::Texture mountainTexture("../res/textures/mountain_rock.png");
+
     framework::Shader shader(framework::VERTLIGHTSRCSHADERPATH, framework::FRAGLIGHTSRCSHADERPATH);
 
-    auto proj = glm::perspective(glm::radians(65.f), framework::WINDOWSIZEX / framework::WINDOWSIZEY, 0.1f, 100.f);
+    auto groundModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
+    auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 100.f);
 
 
 //------------------------------------------------------------------------------------
@@ -67,8 +86,11 @@ int main()
 
         ProcessInput(window, dt);
        
-        cubeTexture.Bind();
+        grassTexture.Bind();
         cube.Draw(shader, framework::camera->GetViewMatrix(), proj);
+
+        shader.SetUniformMat4f("u_Model", groundModelMatrix);
+        renderer.Draw(vao, ibo, shader);
 
         glfwSwapBuffers(window);
 

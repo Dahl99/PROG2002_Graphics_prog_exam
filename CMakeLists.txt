@@ -69,6 +69,9 @@ add_executable(GraphicsExam
 	src/framework/camera.hpp
 	src/framework/camera.cpp
 	
+	src/framework/heightmap.hpp
+	src/framework/heightmap.cpp
+	
 	src/framework/consts.hpp
 	src/framework/glutil.hpp
 

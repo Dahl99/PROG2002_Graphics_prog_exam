@@ -14,7 +14,7 @@ namespace framework
 		int w, h, bitsPerPixel;
 
 	public:
-		Texture(const std::string& filepath, GLboolean flip = true);
+		Texture(const std::string& filepath);
 		~Texture();
 
 		void Bind(GLuint slot = 0) const;			// Binds texture to specified texture slot, defaults to slot 0

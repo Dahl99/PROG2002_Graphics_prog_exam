@@ -10,7 +10,9 @@ namespace framework
 	//									Constants
 	//-------------------------------------------------------------------------------------
 
-	const float WINDOWSIZEX = 1280.f, WINDOWSIZEY = 720.f;
+	const int WINDOWSIZEX = 1280, WINDOWSIZEY = 720;
+
+	const std::string HEIGHTMAPPATH = "../res/HeightMaps/Snaasa_HeightMap.png";
 
 	const std::string VERTLIGHTSRCSHADERPATH = "../res/shaders/lightsrc.vert";
 	const std::string FRAGLIGHTSRCSHADERPATH = "../res/shaders/lightsrc.frag";

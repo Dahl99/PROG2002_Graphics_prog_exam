@@ -12,7 +12,7 @@ namespace framework
 
 		framework::VertexBufferLayout vbl;          // Create a vertex buffer layout
 		vbl.Push<GLfloat>(3);                       // Adding position floats to layout
-		vbl.Push<GLfloat>(3);                       // Adding color floats to layout
+		vbl.Push<GLfloat>(3);                       // Adding normal floats to layout
 		vbl.Push<GLfloat>(2);                       // Adding tex coords floats to layout
 
 		vao->AddBuffer(*vbo, vbl);					// Populating the vertex buffer
