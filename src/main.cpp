@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <glm/trigonometric.hpp>
 
 #include "framework/glutil.hpp"
 #include "framework/texture.hpp"
@@ -12,6 +13,9 @@
 #include "framework/heightmap.hpp"
 
 void ProcessInput(GLFWwindow* window, const float dt);
+void UpdateSunAndMoon(framework::Shader& shader, framework::Entity& sun, 
+                      framework::Entity& moon, float& dt, float& daynightCycle,
+                      float& allTime);
 
 //------------------------------------------------------------------------------------
 //                                     Main
@@ -40,9 +44,9 @@ int main()
     renderer.EnableDepthTesting();
     renderer.SetClearColor(glm::vec4(0.3f, 0.0f, 0.3f, 1.0f));
 
-    // Variables used to find delta time
-    static GLfloat dt, curTime, lastTime;
-    dt = curTime = lastTime = 0.0f;
+    // Variables used to find delta time as well as variables for day/night cycle
+    static GLfloat dt, curTime, lastTime, allTime,daynightCycle;
+    dt = curTime = lastTime = allTime = daynightCycle = 0.0f;
 
     // Initializing Camera object
     framework::camera = std::make_unique<framework::Camera>(glm::vec3(0.f, 15.f, 100.f));
@@ -84,7 +88,7 @@ int main()
     terrainShader.Bind();
     for (int i = 0; i < 2; i++)
     {
-        terrainShader.SetUniform3fv("u_PointLights[" + std::to_string(i) + "].color", glm::vec3(1.0f));
+        //terrainShader.SetUniform3fv("u_PointLights[" + std::to_string(i) + "].color", glm::vec3(1.0f));
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
@@ -103,26 +107,25 @@ int main()
     {
         //                   Preparation
         framework::updateDeltaTime(dt, curTime, lastTime);
+        allTime += dt * 0.05f;
+
         glfwPollEvents();
 
         renderer.Clear();   // Clearing screen
 
         ProcessInput(window, dt);
 
+        // Updating sun and moon position and light color
+        UpdateSunAndMoon(terrainShader, sun, moon, dt, daynightCycle, allTime);
+
         /**
-         * Draw calls for terrain and sun
+         * Draw calls for terrain, sun and moon
          */
         sunTexture.Bind();
         sun.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
         
         moonTexture.Bind();
         moon.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
-
-        terrainShader.Bind();
-        terrainShader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
-        terrainShader.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
-        terrainShader.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
-        terrainShader.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
 
         renderer.Draw(vao, ibo, terrainShader);
 
@@ -159,4 +162,44 @@ void ProcessInput(GLFWwindow* window, const float dt)
     {
         framework::camera->ProcessInputKeyboard(framework::Direction::LEFT, dt);
     }
+}
+
+void UpdateSunAndMoon(framework::Shader& shader, framework::Entity& sun, 
+                      framework::Entity& moon, float& dt, float& daynightCycle,
+                      float& allTime)
+{
+    // Updating sun and moon position, making them rotate around the map
+    sun.SetPosition(glm::vec3(glm::cos(allTime) * 700.f + 540.f, glm::sin(allTime) * 700.f, 540.f));
+    moon.SetPosition(glm::vec3((glm::cos(allTime + 3.2f) * 700.f + 540.f), glm::sin(allTime + 3.2f) * 700.f, 540.f));
+
+    shader.Bind();
+    shader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
+    shader.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
+    shader.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
+    shader.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
+
+    daynightCycle += dt;
+
+    // dawn   - morning   - midday - evening   - dusk   - night
+    // orange - yellowish - white  - yellowish - orange - dark blue
+
+    if (daynightCycle <= 12.f)          // Setting sun color for dawn
+    {
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+        shader.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f));
+    }
+    else if (daynightCycle <= 24.f)     // Setting sun color for morning
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+    else if (daynightCycle <= 36.f)     // Setting sun color for midday
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f));
+    else if (daynightCycle <= 48.f)     // Setting sun color for evening
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+    else if (daynightCycle <= 60.f)     // Setting sun color for dusk
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+    else if (daynightCycle <= 120.f)    // Setting sun and moon color for night
+    {
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
+        shader.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.5f));
+    }
+    else daynightCycle = 0.0f;
 }
