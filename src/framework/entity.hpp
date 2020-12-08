@@ -23,8 +23,6 @@ namespace framework {
 		std::unique_ptr<VertexArray> vao;
 		std::unique_ptr<VertexBuffer> vbo;
 		std::unique_ptr<IndexBuffer> ibo;
-
-		std::unique_ptr<Model> model;
 	
 	public:
 		Entity(glm::vec3 pos, std::vector<Vertex>& vertices, std::vector<GLuint>& indices);

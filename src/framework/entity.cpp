@@ -4,7 +4,7 @@
 namespace framework 
 {
 	Entity::Entity(glm::vec3 position, std::vector<Vertex>& vertices, std::vector<GLuint>& indices) 
-		: position(position), rotationAxis(glm::vec3(0.f, 1.f, 0.f)), scale(glm::vec3(1.f)), mvSpeed(5.0f), rotation(0.f)
+		: position(position), rotationAxis(0.f, 1.f, 0.f), scale(1.f, 1.f, 1.f), mvSpeed(5.0f), rotation(0.f)
 	{
 		vao = std::make_unique<VertexArray>();			// Initializing vao
 		vbo = std::make_unique<VertexBuffer>(vertices); // Initializing vbo
@@ -21,7 +21,7 @@ namespace framework
 	Entity::Entity(glm::vec3 position, const std::string& modelpath) 
 		: position(position), rotationAxis(0.f, 1.f, 0.f), scale(1.f, 1.f, 1.f), mvSpeed(5.0f), rotation(0.f)
 	{
-		model = std::make_unique<Model>(modelpath);					// Initializing model
+		std::unique_ptr<Model> model = std::make_unique<Model>(modelpath);					// Initializing model
 
 		vao = std::make_unique<VertexArray>();						// Initializing vao
 		vbo = std::make_unique<VertexBuffer>(model->GetVertices()); // Initializing vbo
