@@ -37,6 +37,9 @@ namespace framework {
         // Getter for view matrix
         inline glm::mat4 GetViewMatrix() const { return glm::lookAt(Position, Position + Front, Up); }
 
+        // Getter for view position
+        inline glm::vec3 GetViewPosition() const { return Position; }
+
     private:
         void updateCameraVectors();
 	};

@@ -64,10 +64,14 @@ int main()
 
     vao.AddBuffer(vbo, vbl);					// Populating the vertex buffer
 
-    // Creating sun entity and loading it's texture
+    // Creating sun and moon entity and loading their texture
     framework::Texture sunTexture(framework::SUNTEXTUREPATH);
-    framework::Entity sun(glm::vec3(0.f, 500.f, 540), framework::SUNMODELPATH);
+    framework::Entity sun(glm::vec3(0.f, 500.f, 540.f), framework::SUNMODELPATH);
     sun.SetScale(glm::vec3(0.01f));
+
+    framework::Texture moonTexture(framework::MOONTEXTUREPATH);
+    framework::Entity moon(glm::vec3(1081.f, 500.f, 540.f), framework::MOONMODELPATH);
+    moon.SetScale(glm::vec3(0.01f));
 
     // Loading shader for light sources
     framework::Shader lightSrcShader(framework::VERTLIGHTSRCSHADERPATH, framework::FRAGLIGHTSRCSHADERPATH);
@@ -98,6 +102,10 @@ int main()
         sunTexture.Bind();
         lightSrcShader.SetUniform1i("u_Textured", 1);
         sun.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
+        
+        moonTexture.Bind();
+        lightSrcShader.SetUniform1i("u_Textured", 1);
+        moon.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
 
         lightSrcShader.SetUniform1i("u_Textured", 0);
         lightSrcShader.SetUniformMat4f("u_Model", terrainModelMatrix);
