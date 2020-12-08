@@ -28,17 +28,73 @@ framework::Heightmap::Heightmap(const std::string& filepath) : image(nullptr), w
 		}
 	}
 	
+	Heightmap::calculateNormals();
+	Heightmap::setIndices();
+
+	stbi_image_free(image);	// Freeing image from memory
+}
+
+void framework::Heightmap::calculateNormals()
+{
+	// Looping through all vertices
+	for (int x = 0; x < w; x++)
+	{
+		for (int z = 0; z < h; z++)
+		{
+			// Variables for each surrounding vertex's height
+			float heightL, heightR, heightD, heightU;
+
+			// Calculating x and z coordinate to be able to find surrounding vertices
+			const int leftXPos = x - 1;
+			const int rightXPos = x + 1;
+
+			const int downZPos = z - 1;
+			const int upZPos = z + 1;
+
+			// If x or z isn't withing bounds of heightmap the height will be 0
+			if (leftXPos < 0)
+				heightL = 0.f;
+			else
+				heightL = m_Vertices.at(w * z + leftXPos).pos.y;
+
+			if (rightXPos >= h)
+				heightR = 0.f;
+			else
+				heightR = m_Vertices.at(w * z + rightXPos).pos.y;
+
+			if (downZPos < 0)
+				heightD = 0.f;
+			else
+				heightD = m_Vertices.at(w * downZPos + x).pos.y;
+
+			if (upZPos >= h)
+				heightU = 0.f;
+			else
+				heightU = m_Vertices.at(w * upZPos + x).pos.y;
+
+			// Calculating the normal vector and normalizing it
+			glm::vec3 normal(heightL - heightR, 2.f, heightD - heightU);
+			normal = glm::normalize(normal);
+
+			// Updating the normal
+			m_Vertices.at(w * z + x).nor = normal;
+		}
+	}
+}
+
+void framework::Heightmap::setIndices()
+{
 	/**
 	 * Looping through all vertices except last row and column
 	 * to set the indices for the heightmap
 	 */
-	for (int z = 0; z < h-1; z++)
+	for (int z = 0; z < h - 1; z++)
 	{
-		for (int x = 0; x < h-1; x++)
+		for (int x = 0; x < h - 1; x++)
 		{
 			const unsigned int topLeft = (z * h) + x;
 			const unsigned int topRight = topLeft + 1;
-			const unsigned int bottomLeft = ((z+1) * h) + x;
+			const unsigned int bottomLeft = ((z + 1) * h) + x;
 			const unsigned int bottomRight = bottomLeft + 1;
 
 			m_Indices.push_back(topLeft);
@@ -47,24 +103,6 @@ framework::Heightmap::Heightmap(const std::string& filepath) : image(nullptr), w
 			m_Indices.push_back(topRight);
 			m_Indices.push_back(bottomLeft);
 			m_Indices.push_back(bottomRight);
-
-
-			//  |
-			//  v	Attempt at texture coordinates for textured terrain 
-
-			/*m_Vertices.at(bottomLeft).tex.x = 0.f;
-			m_Vertices.at(bottomLeft).tex.y = 0.f;
-
-			m_Vertices.at(bottomRight).tex.x = 1.f;
-			m_Vertices.at(bottomRight).tex.y = 0.f;
-
-			m_Vertices.at(topLeft).tex.x = 0.f;
-			m_Vertices.at(topLeft).tex.y = 1.f;
-
-			m_Vertices.at(topRight).tex.x = 1.f;
-			m_Vertices.at(topRight).tex.y = 1.f;*/
 		}
 	}
-
-	stbi_image_free(image);	// Freeing image from memory
 }

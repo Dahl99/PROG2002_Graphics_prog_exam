@@ -22,5 +22,9 @@ namespace framework
 
 		inline auto GetVertices() const { return m_Vertices; }	// Getter for vertices
 		inline auto GetIndices() const { return m_Indices; }	// Getter for indices
+
+	private:
+		void calculateNormals();
+		void setIndices();
 	};
 }
