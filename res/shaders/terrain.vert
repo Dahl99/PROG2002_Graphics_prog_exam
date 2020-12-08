@@ -17,10 +17,10 @@ uniform mat4 u_Projection;
 void main()
 {
 	vec3 color = vec3(1.0);
-	if (a_Position.y < 5.0)
+	if (a_Position.y < 42.0)
 		color = vec3(0.7, 0.2, 0.0);
-	else if (a_Position.y < 12)
-		color = vec3(0.1, 1.0, 0.1);
+	else if (a_Position.y < 84.0)
+		color = vec3(0.1, 0.7, 0.1);
 	else
 		color = vec3(0.8, 0.8, 0.8);
 

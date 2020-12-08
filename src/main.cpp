@@ -1,10 +1,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <irrKlang.h>
+#include <glm/trigonometric.hpp>
+#include <random>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <glm/trigonometric.hpp>
 
 #include "framework/glutil.hpp"
 #include "framework/texture.hpp"
@@ -13,7 +14,7 @@
 #include "framework/heightmap.hpp"
 
 void ProcessInput(GLFWwindow* window, const float dt);
-void UpdateSunAndMoon(framework::Shader& shader, framework::Entity& sun, 
+void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entities, framework::Entity& sun, 
                       framework::Entity& moon, float& dt, float& daynightCycle,
                       float& allTime);
 
@@ -49,7 +50,7 @@ int main()
     dt = curTime = lastTime = allTime = daynightCycle = 0.0f;
 
     // Initializing Camera object
-    framework::camera = std::make_unique<framework::Camera>(glm::vec3(0.f, 15.f, 100.f));
+    framework::camera = std::make_unique<framework::Camera>(glm::vec3(540.f, 70.f, 540.f));
     
 
     /**
@@ -79,18 +80,32 @@ int main()
     framework::Entity moon(glm::vec3(1081.f, 500.f, 540.f), sphereModel->GetVertices(), sphereModel->GetIndices());
     moon.SetScale(glm::vec3(0.01f));
 
+    // Creating pine trees and loading pine tree texture
+    framework::Texture pinetreeTexture(framework::PINETREETEXTUREPATH);
+    std::vector<std::shared_ptr<framework::Entity>> pinetrees;
+    auto pinetreeModel = std::make_unique<framework::Model>(framework::PINETREEMODELPATH);
+
+    for (const auto& pos : framework::TREEPOSITIONS)
+    {
+            auto temp = std::make_shared<framework::Entity>(pos, pinetreeModel->GetVertices(), pinetreeModel->GetIndices());
+            temp->SetScale(glm::vec3(0.2f));
+            temp->SetRotationAxis(glm::vec3(1.f, 0.f, 0.f));
+            temp->SetRotation(270.f);
+            pinetrees.push_back(temp);
+    }
+
     // Model matrix for heightmap terrain as well as projection matrix
     auto terrainModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
     auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 1200.f);
 
-    // Loading shader for light sources
+    // Creating shaders: 1 for light sources, 1 for terrain and 1 for textured entities
     framework::Shader lightSrcShader(framework::LIGHTSRCVERTSHADERPATH, framework::LIGHTSRCFRAGSHADERPATH);
     framework::Shader terrainShader(framework::TERRAINVERTSHADERPATH, framework::TERRAINFRAGSHADERPATH);
+    framework::Shader entitiesShader(framework::ENTITIESVERTSHADERPATH, framework::ENTITIESFRAGSHADERPATH);
 
     terrainShader.Bind();
     for (int i = 0; i < 2; i++)
     {
-        //terrainShader.SetUniform3fv("u_PointLights[" + std::to_string(i) + "].color", glm::vec3(1.0f));
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
@@ -98,6 +113,15 @@ int main()
 
     terrainShader.SetUniformMat4f("u_Model", terrainModelMatrix);
     terrainShader.SetUniformMat4f("u_Projection", proj);
+    
+    entitiesShader.Bind();
+    for (int i = 0; i < 2; i++)
+    {
+        entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
+        entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
+        entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
+    }
+    entitiesShader.SetUniformMat4f("u_Projection", proj);
 
 
 
@@ -116,18 +140,18 @@ int main()
         renderer.Clear();   // Clearing screen
 
         ProcessInput(window, dt);
+        UpdateLightingUniforms(terrainShader, entitiesShader, sun, moon, dt, daynightCycle, allTime);
 
-        // Updating sun and moon position and light color
-        UpdateSunAndMoon(terrainShader, sun, moon, dt, daynightCycle, allTime);
-
-        /**
-         * Draw calls for terrain, sun and moon
-         */
+        // Draw calls
         sunTexture.Bind();
         sun.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
         
         moonTexture.Bind();
         moon.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
+
+        pinetreeTexture.Bind();
+        for (auto& pinetree : pinetrees)
+            pinetree->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
 
         renderer.Draw(vao, ibo, terrainShader);
 
@@ -166,19 +190,24 @@ void ProcessInput(GLFWwindow* window, const float dt)
     }
 }
 
-void UpdateSunAndMoon(framework::Shader& shader, framework::Entity& sun, 
-                      framework::Entity& moon, float& dt, float& daynightCycle,
-                      float& allTime)
+void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entities, framework::Entity& sun, 
+                          framework::Entity& moon, float& dt, float& daynightCycle,
+                          float& allTime)
 {
     // Updating sun and moon position, making them rotate around the map
     sun.SetPosition(glm::vec3(glm::cos(allTime) * 700.f + 540.f, glm::sin(allTime) * 700.f, 540.f));
     moon.SetPosition(glm::vec3((glm::cos(allTime + 3.2f) * 700.f + 540.f), glm::sin(allTime + 3.2f) * 700.f, 540.f));
 
-    shader.Bind();
-    shader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
-    shader.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
-    shader.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
-    shader.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
+    terrain.Bind();
+    terrain.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
+    terrain.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
+    terrain.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
+    terrain.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
+
+    entities.Bind();
+    entities.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
+    entities.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
+    entities.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
 
     daynightCycle += dt;
 
@@ -187,21 +216,56 @@ void UpdateSunAndMoon(framework::Shader& shader, framework::Entity& sun,
 
     if (daynightCycle <= 12.f)          // Setting sun color for dawn
     {
-        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
-        shader.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f));
+        terrain.Bind();
+        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+        terrain.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f));
+
+        entities.Bind();
+        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+        entities.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f));
     }
     else if (daynightCycle <= 24.f)     // Setting sun color for morning
-        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+    {
+        terrain.Bind();
+        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+
+        entities.Bind();
+        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+    }
     else if (daynightCycle <= 36.f)     // Setting sun color for midday
-        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f));
+    {
+        terrain.Bind();
+        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f));
+        
+        entities.Bind();
+        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f));
+    }
     else if (daynightCycle <= 48.f)     // Setting sun color for evening
-        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+    {
+        terrain.Bind();
+        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+
+        entities.Bind();
+        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+
+    }
     else if (daynightCycle <= 60.f)     // Setting sun color for dusk
-        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+    {
+        terrain.Bind();
+        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+
+        entities.Bind();
+        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+    }
     else if (daynightCycle <= 120.f)    // Setting sun and moon color for night
     {
-        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
-        shader.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.5f));
+        terrain.Bind();
+        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
+        terrain.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.6f));
+        
+        entities.Bind();
+        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
+        entities.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.6f));
     }
     else daynightCycle = 0.0f;
 }

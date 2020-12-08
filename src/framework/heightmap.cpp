@@ -13,6 +13,7 @@ framework::Heightmap::Heightmap(const std::string& filepath) : image(nullptr), w
 	/**
 	 * Looping through all pixels in heightmap 
 	 */
+
 	for (int x = 0; x < w; x++)
 	{
 		for (int z = 0; z < h; z++)
@@ -21,7 +22,7 @@ framework::Heightmap::Heightmap(const std::string& filepath) : image(nullptr), w
 
 			framework::Vertex temp{};			// Using x, pixel and z to set vertex coordinate
 			temp.pos = { (float)x,
-						 ((float)pixel/10.f),
+						 ((float)pixel),
 						 (float)z };
 
 			m_Vertices.push_back(temp);			// Adding vertex to vector containing all vertices
