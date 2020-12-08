@@ -66,19 +66,33 @@ int main()
 
     // Creating sun and moon entity and loading their texture
     framework::Texture sunTexture(framework::SUNTEXTUREPATH);
-    framework::Entity sun(glm::vec3(0.f, 500.f, 540.f), framework::SUNMODELPATH);
+    framework::Entity sun(glm::vec3(0.f, 50.f, 540.f), framework::SUNMODELPATH);
     sun.SetScale(glm::vec3(0.01f));
 
     framework::Texture moonTexture(framework::MOONTEXTUREPATH);
     framework::Entity moon(glm::vec3(1081.f, 500.f, 540.f), framework::MOONMODELPATH);
     moon.SetScale(glm::vec3(0.01f));
 
-    // Loading shader for light sources
-    framework::Shader lightSrcShader(framework::VERTLIGHTSRCSHADERPATH, framework::FRAGLIGHTSRCSHADERPATH);
-
     // Model matrix for heightmap terrain as well as projection matrix
     auto terrainModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
-    auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 1000.f);
+    auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 1200.f);
+
+    // Loading shader for light sources
+    framework::Shader lightSrcShader(framework::LIGHTSRCVERTSHADERPATH, framework::LIGHTSRCFRAGSHADERPATH);
+    framework::Shader terrainShader(framework::TERRAINVERTSHADERPATH, framework::TERRAINFRAGSHADERPATH);
+
+    terrainShader.Bind();
+    for (int i = 0; i < 2; i++)
+    {
+        terrainShader.SetUniform3fv("u_PointLights[" + std::to_string(i) + "].color", glm::vec3(1.0f));
+        terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
+        terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
+        terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
+    }
+
+    terrainShader.SetUniformMat4f("u_Model", terrainModelMatrix);
+    terrainShader.SetUniformMat4f("u_Projection", proj);
+
 
 
 //------------------------------------------------------------------------------------
@@ -98,18 +112,19 @@ int main()
         /**
          * Draw calls for terrain and sun
          */
-
         sunTexture.Bind();
-        lightSrcShader.SetUniform1i("u_Textured", 1);
         sun.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
         
         moonTexture.Bind();
-        lightSrcShader.SetUniform1i("u_Textured", 1);
         moon.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
 
-        lightSrcShader.SetUniform1i("u_Textured", 0);
-        lightSrcShader.SetUniformMat4f("u_Model", terrainModelMatrix);
-        renderer.Draw(vao, ibo, lightSrcShader);
+        terrainShader.Bind();
+        terrainShader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
+        terrainShader.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
+        terrainShader.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
+        terrainShader.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
+
+        renderer.Draw(vao, ibo, terrainShader);
 
         glfwSwapBuffers(window);
 

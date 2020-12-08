@@ -20,11 +20,14 @@ namespace framework
 	const std::string MOONMODELPATH = "../res/models/sun_moon/sphere.obj";
 	const std::string MOONTEXTUREPATH = "../res/models/sun_moon/moon.png";
 
-	const std::string VERTLIGHTSRCSHADERPATH = "../res/shaders/lightsrc.vert";
-	const std::string FRAGLIGHTSRCSHADERPATH = "../res/shaders/lightsrc.frag";
+	const std::string LIGHTSRCVERTSHADERPATH = "../res/shaders/lightsrc.vert";
+	const std::string LIGHTSRCFRAGSHADERPATH = "../res/shaders/lightsrc.frag";
 	
-	const std::string VERTSHADERPATH = "../res/shaders/shader.vert";
-	const std::string FRAGSHADERPATH = "../res/shaders/shader.frag";
+	const std::string TERRAINVERTSHADERPATH = "../res/shaders/terrain.vert";
+	const std::string TERRAINFRAGSHADERPATH = "../res/shaders/terrain.frag";
+	
+	const std::string ENTITIESVERTSHADERPATH = "../res/shaders/entities.vert";
+	const std::string ENTITIESFRAGSHADERPATH = "../res/shaders/entities.frag";
 
 	
 	//-------------------------------------------------------------------------------------
