@@ -6,7 +6,6 @@ layout(location = 2) in vec2 a_TexCoords;
 
 /** Outputs */
 out vec2 v_TexCoords;
-out vec4 v_Color;
 
 /** Uniforms */
 uniform mat4 u_Model;

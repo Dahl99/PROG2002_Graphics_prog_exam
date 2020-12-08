@@ -19,7 +19,6 @@ namespace framework {
 	protected:
 		glm::vec3 position, rotationAxis, scale;
 		GLfloat mvSpeed, rotation;
-		GLboolean isVulnerable;
 
 		std::unique_ptr<VertexArray> vao;
 		std::unique_ptr<VertexBuffer> vbo;

@@ -16,7 +16,6 @@ struct PointLight {
 in vec3 v_Normal;
 in vec2 v_TexCoords;
 in vec3 v_FragPos;
-in vec4 v_Color;
 
 /** Outputs */
 out vec4 FragColor;
@@ -32,11 +31,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewPos);
 void main()
 {
 	/** Texture */
-	vec4 color;
-	if (v_Color.x == 0.0)
-		color = texture(u_Texture, v_TexCoords);
-	else
-		color = v_Color;
+	vec4 color = texture(u_Texture, v_TexCoords);
 
 	/** Calculating lighting from all point lights */
 	vec3 blinn_phong = vec3(0.0);

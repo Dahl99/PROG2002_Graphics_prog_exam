@@ -69,12 +69,14 @@ int main()
     vao.AddBuffer(vbo, vbl);					// Populating the vertex buffer
 
     // Creating sun and moon entity and loading their texture
+    std::unique_ptr<framework::Model> sphereModel = std::make_unique<framework::Model>(framework::SPHEREMODELPATH);
+
     framework::Texture sunTexture(framework::SUNTEXTUREPATH);
-    framework::Entity sun(glm::vec3(0.f, 50.f, 540.f), framework::SUNMODELPATH);
+    framework::Entity sun(glm::vec3(0.f, 50.f, 540.f), sphereModel->GetVertices(), sphereModel->GetIndices());
     sun.SetScale(glm::vec3(0.01f));
 
     framework::Texture moonTexture(framework::MOONTEXTUREPATH);
-    framework::Entity moon(glm::vec3(1081.f, 500.f, 540.f), framework::MOONMODELPATH);
+    framework::Entity moon(glm::vec3(1081.f, 500.f, 540.f), sphereModel->GetVertices(), sphereModel->GetIndices());
     moon.SetScale(glm::vec3(0.01f));
 
     // Model matrix for heightmap terrain as well as projection matrix

@@ -14,10 +14,8 @@ namespace framework
 
 	const std::string HEIGHTMAPPATH = "../res/HeightMaps/Snaasa_HeightMap.png";
 
-	const std::string SUNMODELPATH = "../res/models/sun_moon/sphere.obj";
+	const std::string SPHEREMODELPATH = "../res/models/sun_moon/sphere.obj";
 	const std::string SUNTEXTUREPATH = "../res/models/sun_moon/sun.png";
-	
-	const std::string MOONMODELPATH = "../res/models/sun_moon/sphere.obj";
 	const std::string MOONTEXTUREPATH = "../res/models/sun_moon/moon.png";
 
 	const std::string LIGHTSRCVERTSHADERPATH = "../res/shaders/lightsrc.vert";
