@@ -30,25 +30,25 @@ namespace framework
 
 	const std::string HEIGHTMAPPATH = "../res/HeightMaps/Gjovik_Height Map.png";
 
-	const std::string SPHEREMODELPATH = "../res/models/sun_moon/sphere.obj";
-	const std::string SUNTEXTUREPATH = "../res/models/sun_moon/sun.png";
-	const std::string MOONTEXTUREPATH = "../res/models/sun_moon/moon.png";
+	const std::string SPHEREMODELPATH = "../res/Objects/Sun_moon/sphere.obj";
+	const std::string SUNTEXTUREPATH = "../res/Objects/Sun_moon/sun.png";
+	const std::string MOONTEXTUREPATH = "../res/Objects/Sun_moon/moon.png";
 
 	const std::string PINETREEMODELPATH = "../res/Objects/PineTree2/10447_Pine_Tree_v1_L3b.obj";
-	const std::string PINETREETEXTUREPATH = "../res/Objects/PineTree2/10447_Pine_Tree_v1_Diffuse.png";
+	const std::string PINETREETEXTUREPATH = "../res/Objects/PineTree2/10447_Pine_Tree_v1_Diffuse.jpg";
 
 	const std::string PLANEMODELPATH = "../res/Objects/Plane/Plane.obj";
 
-	const std::string LIGHTSRCVERTSHADERPATH = "../res/shaders/lightsrc.vert";
-	const std::string LIGHTSRCFRAGSHADERPATH = "../res/shaders/lightsrc.frag";
+	const std::string LIGHTSRCVERTSHADERPATH = "../res/Shaders/lightsrc.vert";
+	const std::string LIGHTSRCFRAGSHADERPATH = "../res/Shaders/lightsrc.frag";
 	
-	const std::string TERRAINVERTSHADERPATH = "../res/shaders/terrain.vert";
-	const std::string TERRAINFRAGSHADERPATH = "../res/shaders/terrain.frag";
+	const std::string TERRAINVERTSHADERPATH = "../res/Shaders/terrain.vert";
+	const std::string TERRAINFRAGSHADERPATH = "../res/Shaders/terrain.frag";
 	
-	const std::string ENTITIESVERTSHADERPATH = "../res/shaders/entities.vert";
-	const std::string ENTITIESFRAGSHADERPATH = "../res/shaders/entities.frag";
+	const std::string ENTITIESVERTSHADERPATH = "../res/Shaders/entities.vert";
+	const std::string ENTITIESFRAGSHADERPATH = "../res/Shaders/entities.frag";
 
-	const std::string SOUNDTRACKPATH = "../res/music/TimeAlone.mp3";
+	const std::string SOUNDTRACKPATH = "../res/Music/TimeAlone.mp3";
 	const float MUSICVOLUME = 0.2f;
 
 
