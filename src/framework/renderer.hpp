@@ -16,6 +16,7 @@ namespace framework
 			void EnableBlending() const;		// Enables blending in OpenGL
 			void EnableDepthTesting() const;	// Enables depth testing in OpenGL
 			void EnableSRGBFramebuffer() const;
+			void EnableMultisampling() const;
 
 			void SetClearColor(glm::vec4& clearColor) const;	// Setter for clear color
 	

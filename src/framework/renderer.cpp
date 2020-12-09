@@ -32,6 +32,11 @@ namespace framework
 		glEnable(GL_FRAMEBUFFER_SRGB);
 	}
 
+	void Renderer::EnableMultisampling() const
+	{
+		glEnable(GL_MULTISAMPLE);
+	}
+
 	void Renderer::SetClearColor(glm::vec4& clearColor) const
 	{
 		glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);

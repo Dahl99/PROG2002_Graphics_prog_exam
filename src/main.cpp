@@ -44,6 +44,7 @@ int main()
     static framework::Renderer renderer;
     renderer.EnableBlending();
     renderer.EnableDepthTesting();
+    renderer.EnableMultisampling();
     renderer.SetClearColor(glm::vec4(0.3f, 0.0f, 0.3f, 1.0f));
 
     // Initializing music
