@@ -37,6 +37,8 @@ namespace framework
 	const std::string PINETREEMODELPATH = "../res/Objects/PineTree2/10447_Pine_Tree_v1_L3b.obj";
 	const std::string PINETREETEXTUREPATH = "../res/Objects/PineTree2/10447_Pine_Tree_v1_Diffuse.png";
 
+	const std::string PLANEMODELPATH = "../res/Objects/Plane/Plane.obj";
+
 	const std::string LIGHTSRCVERTSHADERPATH = "../res/shaders/lightsrc.vert";
 	const std::string LIGHTSRCFRAGSHADERPATH = "../res/shaders/lightsrc.frag";
 	

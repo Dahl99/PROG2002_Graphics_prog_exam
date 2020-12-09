@@ -15,8 +15,7 @@
 
 void ProcessInput(GLFWwindow* window, const float dt);
 void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entities, framework::Entity& sun, 
-                      framework::Entity& moon, float& dt, float& daynightCycle,
-                      float& allTime);
+                            framework::Entity& moon, float& dt, float& daynightCycle, float& allTime);
 
 //------------------------------------------------------------------------------------
 //                                     Main
@@ -85,6 +84,9 @@ int main()
     std::vector<std::shared_ptr<framework::Entity>> pinetrees;
     auto pinetreeModel = std::make_unique<framework::Model>(framework::PINETREEMODELPATH);
 
+    framework::Entity plane(glm::vec3(540.f, 300.f, 200.f), framework::PLANEMODELPATH);
+    plane.SetScale(glm::vec3(0.3f));
+
     for (const auto& pos : framework::TREEPOSITIONS)
     {
             auto temp = std::make_shared<framework::Entity>(pos, pinetreeModel->GetVertices(), pinetreeModel->GetIndices());
@@ -152,6 +154,8 @@ int main()
         pinetreeTexture.Bind();
         for (auto& pinetree : pinetrees)
             pinetree->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
+
+        plane.Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
 
         renderer.Draw(vao, ibo, terrainShader);
 
