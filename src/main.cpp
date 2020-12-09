@@ -44,6 +44,12 @@ int main()
     renderer.EnableDepthTesting();
     renderer.SetClearColor(glm::vec4(0.3f, 0.0f, 0.3f, 1.0f));
 
+    // Initializing music
+    static irrklang::ISoundEngine* soundEngine = irrklang::createIrrKlangDevice();
+    static irrklang::ISound* music = soundEngine->play2D(framework::SOUNDTRACKPATH.c_str(), GL_TRUE, GL_FALSE, GL_TRUE);
+    music->setVolume(framework::MUSICVOLUME);
+
+
     // Variables used to find delta time as well as variables for day/night cycle
     static GLfloat dt, curTime, lastTime, allTime,daynightCycle;
     dt = curTime = lastTime = allTime = daynightCycle = 0.0f;

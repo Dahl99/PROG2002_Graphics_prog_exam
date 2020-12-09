@@ -48,6 +48,10 @@ namespace framework
 	const std::string ENTITIESVERTSHADERPATH = "../res/shaders/entities.vert";
 	const std::string ENTITIESFRAGSHADERPATH = "../res/shaders/entities.frag";
 
+	const std::string SOUNDTRACKPATH = "../res/music/TimeAlone.mp3";
+	const float MUSICVOLUME = 0.2f;
+
+
 	
 	//-------------------------------------------------------------------------------------
 	//								Structs and Enums
