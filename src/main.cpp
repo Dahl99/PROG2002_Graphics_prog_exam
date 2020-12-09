@@ -17,6 +17,8 @@ void ProcessInput(GLFWwindow* window, const float dt);
 void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entities, framework::Entity& sun, 
                             framework::Entity& moon, float& dt, float& daynightCycle, float& allTime);
 
+void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, const float& dt, bool& yUp);
+
 //------------------------------------------------------------------------------------
 //                                     Main
 //------------------------------------------------------------------------------------
@@ -90,9 +92,6 @@ int main()
     std::vector<std::shared_ptr<framework::Entity>> pinetrees;
     auto pinetreeModel = std::make_unique<framework::Model>(framework::PINETREEMODELPATH);
 
-    framework::Entity plane(glm::vec3(540.f, 300.f, 200.f), framework::PLANEMODELPATH);
-    plane.SetScale(glm::vec3(0.3f));
-
     for (const auto& pos : framework::TREEPOSITIONS)
     {
             auto temp = std::make_shared<framework::Entity>(pos, pinetreeModel->GetVertices(), pinetreeModel->GetIndices());
@@ -101,6 +100,14 @@ int main()
             temp->SetRotation(270.f);
             pinetrees.push_back(temp);
     }
+
+    // Creating plane entity
+    framework::Entity plane(glm::vec3(540.f, 300.f, 200.f), framework::PLANEMODELPATH);
+    plane.SetScale(glm::vec3(0.3f));
+    plane.SetSpeed(80.f);
+    bool yUp = true;
+
+    framework::Direction planeLastDirection = framework::Direction::BACK;
 
     // Model matrix for heightmap terrain as well as projection matrix
     auto terrainModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
@@ -148,6 +155,7 @@ int main()
         renderer.Clear();   // Clearing screen
 
         ProcessInput(window, dt);
+        PlaneMovement(plane, planeLastDirection, dt, yUp);
         UpdateLightingUniforms(terrainShader, entitiesShader, sun, moon, dt, daynightCycle, allTime);
 
         // Draw calls
@@ -206,7 +214,7 @@ void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entit
 {
     // Updating sun and moon position, making them rotate around the map
     sun.SetPosition(glm::vec3(glm::cos(allTime) * 700.f + 540.f, glm::sin(allTime) * 700.f, 540.f));
-    moon.SetPosition(glm::vec3((glm::cos(allTime + 3.2f) * 700.f + 540.f), glm::sin(allTime + 3.2f) * 700.f, 540.f));
+    moon.SetPosition(glm::vec3((glm::cos(allTime + 3.3f) * 700.f + 540.f), glm::sin(allTime + 3.3f) * 700.f, 540.f));
 
     terrain.Bind();
     terrain.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
@@ -278,4 +286,86 @@ void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entit
         entities.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.6f));
     }
     else daynightCycle = 0.0f;
+}
+
+void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, const float& dt, bool& yUp)
+{
+    std::random_device rd;		                    // Obtaining a "true" random seed
+    std::mt19937 gen(rd());		                    // Seeding the Mersenne twister
+    std::uniform_int_distribution<> rand(0, 1);	// Generates random integers in range [0, 100]
+
+    plane.Move(dt, lastDir);
+
+    // Getting random number used for changing direction and position of plane
+    int temp = rand(gen);
+    const auto planePos = plane.GetPosition();
+
+    // Plane will go slowly up and down between y = 200 and y = 300
+    if (planePos.y < 200.f) 
+        yUp = true;
+
+    if (planePos.y > 300.f)
+        yUp = false;
+
+    if (yUp)
+        plane.SetPosition(glm::vec3(planePos.x, planePos.y + (plane.GetSpeed() * dt)/4, planePos.z));
+    else if (!yUp)
+        plane.SetPosition(glm::vec3(planePos.x, planePos.y - (plane.GetSpeed() * dt)/4, planePos.z));
+    
+    /**
+     *  If x is < 1000 or > 1000 plane will randomly change direction either forward or backwards
+     *  The same goes for z except the randomly chosen direction will be either left or right
+     */
+    if (plane.GetPosition().x > 1000.f && lastDir == framework::Direction::RIGHT)
+    {
+        if (temp == 0) 
+        {
+            lastDir = framework::Direction::FORWARD;
+            plane.SetRotation(180.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::BACK;
+            plane.SetRotation(0.f);
+        }
+    }
+    else if (plane.GetPosition().z > 1000.f && lastDir == framework::Direction::BACK)
+    {
+        if (temp == 0)
+        {
+            lastDir = framework::Direction::LEFT;
+            plane.SetRotation(270.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::RIGHT;
+            plane.SetRotation(90.f);
+        }
+    }
+    else if (plane.GetPosition().x < 100.f && lastDir == framework::Direction::LEFT)
+    {
+        if (temp == 0)
+        {
+            lastDir = framework::Direction::FORWARD;
+            plane.SetRotation(180.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::BACK;
+            plane.SetRotation(0.f);
+        }
+    }
+    else if (plane.GetPosition().z < 100.f && lastDir == framework::Direction::FORWARD)
+    {
+        if (temp == 0)
+        {
+            lastDir = framework::Direction::LEFT;
+            plane.SetRotation(270.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::RIGHT;
+            plane.SetRotation(90.f);
+        }
+    }
 }

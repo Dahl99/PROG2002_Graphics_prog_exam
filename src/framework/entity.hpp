@@ -39,6 +39,9 @@ namespace framework {
 		inline glm::vec3 GetPosition() const { return position; };					// Getter for position vector
 		inline void SetPosition(glm::vec3 position) { this->position = position; }	// Setter for position vector
 
+		inline GLfloat GetSpeed() const { return mvSpeed; }							// Getter for movement speed
+		inline void SetSpeed(const GLfloat mvSpeed) { this->mvSpeed = mvSpeed; }	// Setter for movement speed
+
 		// Updates entity position based on direction using delta time
 		void Move(const GLfloat& dt, const Direction& direction);
 
