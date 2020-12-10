@@ -13,8 +13,8 @@
 #include "framework/heightmap.hpp"
 
 void ProcessInput(GLFWwindow* window, const float dt);
-void UpdateLightingUniforms(framework::Shader& shader, framework::Entity& sun, 
-                            framework::Entity& moon, float& dt, float& daynightCycle, float& allTime);
+void UpdateLightingUniforms(framework::Shader& shader, framework::Entity& sun, framework::Entity& moon, 
+                            float& dt, float& daynightCycle, float& allTime, int& day);
 
 void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, const float& dt, bool& yUp);
 void AnimalMovement(framework::Entity& animal, framework::Direction& lastDir, const float& dt);
@@ -54,8 +54,10 @@ int main()
 
 
     // Variables used to find delta time as well as variables for day/night cycle
-    static GLfloat dt, curTime, lastTime, allTime,daynightCycle;
+    static GLfloat dt, curTime, lastTime, allTime, daynightCycle;
     dt = curTime = lastTime = allTime = daynightCycle = 0.0f;
+
+    static int day = 0;
 
     // Initializing Camera object
     framework::camera = std::make_unique<framework::Camera>(glm::vec3(540.f, 70.f, 540.f));
@@ -160,6 +162,17 @@ int main()
         shader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
     }
 
+    // ImGui setup
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 430 core");
+
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoDecoration;
+    window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
+
 //------------------------------------------------------------------------------------
 //                                  Game loop
 //------------------------------------------------------------------------------------
@@ -174,9 +187,20 @@ int main()
 
         renderer.Clear();   // Clearing screen
 
+        // Creating ImGui textbox for displaying current day and time of day
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::Begin("Score", NULL, window_flags);
+        ImGui::Text("Day: %d time: %.1f", day, daynightCycle);
+        ImGui::End();
+
+
         ProcessInput(window, dt);
         PlaneMovement(plane, planeLastDirection, dt, yUp);
-        UpdateLightingUniforms(shader, sun, moon, dt, daynightCycle, allTime);
+        UpdateLightingUniforms(shader, sun, moon, dt, daynightCycle, allTime, day);
 
         // Draw calls
         sunTexture.Bind();
@@ -218,11 +242,19 @@ int main()
         shader.SetUniformMat4f("u_Projection", proj);
         renderer.Draw(vao, ibo, shader);
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
 
         // Exit the loop if escape is pressed
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
     }
+
+    // Shutdown
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
 
@@ -255,11 +287,11 @@ void ProcessInput(GLFWwindow* window, const float dt)
 
 void UpdateLightingUniforms(framework::Shader& shader, framework::Entity& sun, 
                           framework::Entity& moon, float& dt, float& daynightCycle,
-                          float& allTime)
+                          float& allTime, int& day)
 {
     // Updating sun and moon position, making them rotate around the map
     sun.SetPosition(glm::vec3(glm::cos(allTime) * 700.f + 540.f, glm::sin(allTime) * 700.f, 540.f));
-    moon.SetPosition(glm::vec3((glm::cos(allTime + 3.3f) * 700.f + 540.f), glm::sin(allTime + 3.3f) * 700.f, 540.f));
+    moon.SetPosition(glm::vec3((glm::cos(allTime + 3.2f) * 700.f + 540.f), glm::sin(allTime + 3.2f) * 700.f, 540.f));
 
     shader.Bind();
     shader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
@@ -304,7 +336,11 @@ void UpdateLightingUniforms(framework::Shader& shader, framework::Entity& sun,
         shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
         shader.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.6f));
     }
-    else daynightCycle = 0.0f;
+    else
+    {
+        day++;
+        daynightCycle = 0.0f;
+    }
 }
 
 void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, const float& dt, bool& yUp)
