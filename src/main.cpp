@@ -128,7 +128,7 @@ int main()
     std::unique_ptr<framework::Model> deerModel = std::make_unique<framework::Model>(framework::DEERMODELPATH);
     for (int i = 0; i < 3; i++)
     {
-        auto temp = std::make_shared<framework::Entity>(glm::vec3(500.f + (float)i*50.f, 70.f, 400.f + (float)i * 80.f), 
+        auto temp = std::make_shared<framework::Entity>(glm::vec3(300.f + (float)i*150.f, 70.f, 400.f + (float)i * 100.f), 
                                                         deerModel->GetVertices(), deerModel->GetIndices());
         temp->SetRotationAxis(glm::vec3(1.f, 0.f, 0.f));
         temp->SetRotation(270.f);
@@ -138,7 +138,7 @@ int main()
     std::unique_ptr<framework::Model> mooseModel = std::make_unique<framework::Model>(framework::MOOSEMODELPATH);
     for (int i = 3; i < 6; i++)
     {
-        auto temp = std::make_shared<framework::Entity>(glm::vec3(500.f + (float)i*60.f, 70.f, 400.f + (float)i * 70.f),
+        auto temp = std::make_shared<framework::Entity>(glm::vec3(400.f + (float)i*100.f, 70.f, 400.f + (float)i * 150.f),
             mooseModel->GetVertices(), mooseModel->GetIndices());
         temp->SetRotationAxis(glm::vec3(1.f, 0.f, 0.f));
         temp->SetRotation(270.f);
