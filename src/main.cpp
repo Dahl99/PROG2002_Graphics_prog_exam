@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 #include <irrKlang.h>
 #include <glm/trigonometric.hpp>
-#include <random>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -18,6 +17,7 @@ void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entit
                             framework::Entity& moon, float& dt, float& daynightCycle, float& allTime);
 
 void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, const float& dt, bool& yUp);
+void AnimalMovement(framework::Entity& animal, framework::Direction& lastDir, const float& dt);
 
 //------------------------------------------------------------------------------------
 //                                     Main
@@ -107,8 +107,42 @@ int main()
     plane.SetScale(glm::vec3(0.3f));
     plane.SetSpeed(80.f);
     bool yUp = true;
-
     framework::Direction planeLastDirection = framework::Direction::BACK;
+
+    framework::Texture deerTexture(framework::DEERTEXTUREPATH);
+    framework::Texture mooseTexture(framework::MOONTEXTUREPATH);
+
+    std::vector<std::shared_ptr<framework::Entity>> animals;
+    framework::Direction animalDirs[6] = {
+        framework::Direction::BACK,
+        framework::Direction::BACK,
+        framework::Direction::BACK,
+        framework::Direction::BACK,
+        framework::Direction::BACK,
+        framework::Direction::BACK
+    };
+
+    std::unique_ptr<framework::Model> deerModel = std::make_unique<framework::Model>(framework::DEERMODELPATH);
+    for (int i = 0; i < 3; i++)
+    {
+        auto temp = std::make_shared<framework::Entity>(glm::vec3(500.f + (float)i*50.f, 70.f, 400.f + (float)i * 80.f), 
+                                                        deerModel->GetVertices(), deerModel->GetIndices());
+        temp->SetRotationAxis(glm::vec3(1.f, 0.f, 0.f));
+        temp->SetRotation(270.f);
+        animals.push_back(temp);
+    }
+
+    std::unique_ptr<framework::Model> mooseModel = std::make_unique<framework::Model>(framework::MOOSEMODELPATH);
+    for (int i = 3; i < 6; i++)
+    {
+        auto temp = std::make_shared<framework::Entity>(glm::vec3(500.f + (float)i*60.f, 70.f, 400.f + (float)i * 70.f),
+            mooseModel->GetVertices(), mooseModel->GetIndices());
+        temp->SetRotationAxis(glm::vec3(1.f, 0.f, 0.f));
+        temp->SetRotation(270.f);
+        temp->SetScale(glm::vec3(0.3f));
+        animals.push_back(temp);
+    }
+
 
     // Model matrix for heightmap terrain as well as projection matrix
     auto terrainModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
@@ -119,24 +153,24 @@ int main()
     framework::Shader terrainShader(framework::TERRAINVERTSHADERPATH, framework::TERRAINFRAGSHADERPATH);
     framework::Shader entitiesShader(framework::ENTITIESVERTSHADERPATH, framework::ENTITIESFRAGSHADERPATH);
 
-    terrainShader.Bind();
     for (int i = 0; i < 2; i++)
     {
+        terrainShader.Bind();
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
         terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
-    }
 
-    terrainShader.SetUniformMat4f("u_Model", terrainModelMatrix);
-    terrainShader.SetUniformMat4f("u_Projection", proj);
-    
-    entitiesShader.Bind();
-    for (int i = 0; i < 2; i++)
-    {
+        entitiesShader.Bind();
         entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
         entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
         entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
     }
+
+    terrainShader.Bind();
+    terrainShader.SetUniformMat4f("u_Model", terrainModelMatrix);
+    terrainShader.SetUniformMat4f("u_Projection", proj);
+    
+    entitiesShader.Bind();
     entitiesShader.SetUniformMat4f("u_Projection", proj);
 
 
@@ -171,6 +205,22 @@ int main()
             pinetree->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
 
         plane.Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
+
+        for (int i = 0; i < 6; i++)
+        {
+            animals.at(i)->ApplyGravity(dt);
+            AnimalMovement(*animals.at(i), animalDirs[i],dt);
+            glm::vec3 temp = map.CheckCollision(animals.at(i)->GetPosition());
+            animals.at(i)->SetPosition(temp);
+        }
+
+        deerTexture.Bind();
+        for (int i = 0; i < 3; i++)
+            animals.at(i)->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
+        
+        mooseTexture.Bind();
+        for (int i = 3; i < 6; i++)
+            animals.at(i)->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
 
         renderer.Draw(vao, ibo, terrainShader);
 
@@ -291,14 +341,10 @@ void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entit
 
 void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, const float& dt, bool& yUp)
 {
-    std::random_device rd;		                    // Obtaining a "true" random seed
-    std::mt19937 gen(rd());		                    // Seeding the Mersenne twister
-    std::uniform_int_distribution<> rand(0, 1);	// Generates random integers in range [0, 100]
-
     plane.Move(dt, lastDir);
 
     // Getting random number used for changing direction and position of plane
-    int temp = rand(gen);
+    int temp = framework::randInt(framework::gen);
     const auto planePos = plane.GetPosition();
 
     // Plane will go slowly up and down between y = 200 and y = 300
@@ -367,6 +413,72 @@ void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, cons
         {
             lastDir = framework::Direction::RIGHT;
             plane.SetRotation(90.f);
+        }
+    }
+}
+
+void AnimalMovement(framework::Entity& animal, framework::Direction& lastDir, const float& dt)
+{
+    animal.Move(dt, lastDir);
+
+    // Getting random number used for changing direction and position of plane
+    int temp = framework::randInt(framework::gen);
+    const auto animalPos = animal.GetPosition();
+
+    /**
+     *  If x is < 1000 or > 1000 plane will randomly change direction either forward or backwards
+     *  The same goes for z except the randomly chosen direction will be either left or right
+     */
+    if (animal.GetPosition().x > 900.f && lastDir == framework::Direction::RIGHT)
+    {
+        if (temp == 0)
+        {
+            lastDir = framework::Direction::FORWARD;
+            //animal.SetRotation(180.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::BACK;
+            //animal.SetRotation(0.f);
+        }
+    }
+    else if (animal.GetPosition().z > 900.f && lastDir == framework::Direction::BACK)
+    {
+        if (temp == 0)
+        {
+            lastDir = framework::Direction::LEFT;
+            //animal.SetRotation(270.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::RIGHT;
+            //animal.SetRotation(90.f);
+        }
+    }
+    else if (animal.GetPosition().x < 300.f && lastDir == framework::Direction::LEFT)
+    {
+        if (temp == 0)
+        {
+            lastDir = framework::Direction::FORWARD;
+            //animal.SetRotation(180.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::BACK;
+            //animal.SetRotation(0.f);
+        }
+    }
+    else if (animal.GetPosition().z < 300.f && lastDir == framework::Direction::FORWARD)
+    {
+        if (temp == 0)
+        {
+            lastDir = framework::Direction::LEFT;
+            //animal.SetRotation(270.f);
+        }
+        else
+        {
+            lastDir = framework::Direction::RIGHT;
+            //animal.SetRotation(90.f);
         }
     }
 }

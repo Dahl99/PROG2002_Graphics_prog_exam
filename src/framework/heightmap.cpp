@@ -15,7 +15,6 @@ framework::Heightmap::Heightmap(const std::string& filepath) : image(nullptr), w
 	 */
 
 	for (int x = 0; x < w; x++)
-	{
 		for (int z = 0; z < h; z++)
 		{
 			stbi_uc pixel = image[w * z + x];	// Getting pixel
@@ -27,12 +26,20 @@ framework::Heightmap::Heightmap(const std::string& filepath) : image(nullptr), w
 
 			m_Vertices.push_back(temp);			// Adding vertex to vector containing all vertices
 		}
-	}
 	
 	Heightmap::calculateNormals();
 	Heightmap::setIndices();
 
 	stbi_image_free(image);	// Freeing image from memory
+}
+
+glm::vec3 framework::Heightmap::CheckCollision(const glm::vec3 entity)
+{
+	for (const auto& element : m_Vertices)
+		if ((int)entity.x == (int)element.pos.x && (int)entity.z == (int)element.pos.z)
+			return glm::vec3(entity.x, element.pos.y + 0.3f, entity.z);
+
+	return entity;
 }
 
 void framework::Heightmap::calculateNormals()

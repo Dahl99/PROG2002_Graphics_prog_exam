@@ -23,6 +23,8 @@ namespace framework {
 		std::unique_ptr<VertexArray> vao;
 		std::unique_ptr<VertexBuffer> vbo;
 		std::unique_ptr<IndexBuffer> ibo;
+
+		glm::mat4 secondRotMat;
 	
 	public:
 		Entity(glm::vec3 pos, std::vector<Vertex>& vertices, std::vector<GLuint>& indices);
@@ -44,6 +46,8 @@ namespace framework {
 
 		// Updates entity position based on direction using delta time
 		void Move(const GLfloat& dt, const Direction& direction);
+
+		void ApplyGravity(const float& dt);
 
 		void Draw(Shader& shader, glm::mat4& view, glm::mat4& proj) const;			// Draws entity onto screen
 	};

@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <memory>
+#include <random>
 #include <iostream>
 
 #include "consts.hpp"
@@ -16,6 +17,10 @@ namespace framework
     float lastX = WINDOWSIZEX / 2.0f;
     float lastY = WINDOWSIZEY / 2.0f;
     bool firstMouse = true;
+
+    std::random_device rd;		                    // Obtaining a "true" random seed
+    std::mt19937 gen(rd());		                    // Seeding the Mersenne twister
+    std::uniform_int_distribution<> randInt(0, 3);	    // Generates random integers in range [0, 1]
 
     // GLFW and window initialization
     GLFWwindow* initWindow(const std::string& title)

@@ -37,6 +37,12 @@ namespace framework
 	const std::string PINETREEMODELPATH = "../res/Objects/PineTree2/10447_Pine_Tree_v1_L3b.obj";
 	const std::string PINETREETEXTUREPATH = "../res/Objects/PineTree2/10447_Pine_Tree_v1_Diffuse.jpg";
 
+	const std::string DEERMODELPATH = "../res/Objects/Deer1/12961_White-Tailed_Deer_v1_l2.obj";
+	const std::string DEERTEXTUREPATH = "../res/Objects/Deer1/12961_White-TailedDeer_diffuse.jpg";
+
+	const std::string MOOSEMODELPATH = "../res/Objects/MooseFemale/12959_Moose_Female_v1_l3.obj";
+	const std::string MOOSETEXTUREPATH = "../res/Objects/MooseFemale/12959_Moose_Female_diff.jpg";
+
 	const std::string PLANEMODELPATH = "../res/Objects/Plane/Plane.obj";
 
 	const std::string LIGHTSRCVERTSHADERPATH = "../res/Shaders/lightsrc.vert";

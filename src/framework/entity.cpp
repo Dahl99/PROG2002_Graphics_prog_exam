@@ -4,7 +4,7 @@
 namespace framework 
 {
 	Entity::Entity(glm::vec3 position, std::vector<Vertex>& vertices, std::vector<GLuint>& indices) 
-		: position(position), rotationAxis(0.f, 1.f, 0.f), scale(1.f, 1.f, 1.f), mvSpeed(5.0f), rotation(0.f)
+		: position(position), rotationAxis(0.f, 1.f, 0.f), scale(1.f, 1.f, 1.f), mvSpeed(30.0f), rotation(0.f)
 	{
 		vao = std::make_unique<VertexArray>();			// Initializing vao
 		vbo = std::make_unique<VertexBuffer>(vertices); // Initializing vbo
@@ -19,7 +19,7 @@ namespace framework
 	}
 
 	Entity::Entity(glm::vec3 position, const std::string& modelpath) 
-		: position(position), rotationAxis(0.f, 1.f, 0.f), scale(1.f, 1.f, 1.f), mvSpeed(5.0f), rotation(0.f)
+		: position(position), rotationAxis(0.f, 1.f, 0.f), scale(1.f, 1.f, 1.f), mvSpeed(30.0f), rotation(0.f)
 	{
 		std::unique_ptr<Model> model = std::make_unique<Model>(modelpath);					// Initializing model
 
@@ -75,5 +75,9 @@ namespace framework
 		default:
 			break;
 		}
+	}
+	void Entity::ApplyGravity(const float& dt)
+	{
+		position.y = 9.81f * dt;
 	}
 }

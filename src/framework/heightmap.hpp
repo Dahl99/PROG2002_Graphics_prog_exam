@@ -23,6 +23,8 @@ namespace framework
 		inline auto GetVertices() const { return m_Vertices; }	// Getter for vertices
 		inline auto GetIndices() const { return m_Indices; }	// Getter for indices
 
+		glm::vec3 CheckCollision(const glm::vec3 entity);
+
 	private:
 		void calculateNormals();
 		void setIndices();
