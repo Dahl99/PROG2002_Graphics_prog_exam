@@ -11,6 +11,7 @@
 #include "framework/renderer.hpp"
 #include "framework/entity.hpp"
 #include "framework/heightmap.hpp"
+#include "framework/skybox.hpp"
 
 void ProcessInput(GLFWwindow* window, const float dt);
 void UpdateLightingUniforms(framework::Shader& shader, framework::Entity& sun, framework::Entity& moon, 
@@ -45,7 +46,7 @@ int main()
     renderer.EnableBlending();
     renderer.EnableDepthTesting();
     renderer.EnableMultisampling();
-    renderer.SetClearColor(glm::vec4(0.3f, 0.0f, 0.3f, 1.0f));
+    renderer.SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
     // Initializing music
     static irrklang::ISoundEngine* soundEngine = irrklang::createIrrKlangDevice();
@@ -150,9 +151,12 @@ int main()
     auto terrainModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
     auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 1200.f);
 
-    // Creating shaders: 1 for light sources, 1 for terrain and entities
+    // Creating shaders: 1 for light sources, 1 for terrain and entities and 1 for skybox
     framework::Shader lightSrcShader(framework::LIGHTSRCVERTSHADERPATH, framework::LIGHTSRCFRAGSHADERPATH);
     framework::Shader shader(framework::VERTSHADERPATH, framework::FRAGSHADERPATH);
+    framework::Shader skyboxShader(framework::SKYBOXVERTSHADERPATH, framework::SKYBOXFRAGSHADERPATH);
+
+    framework::Skybox skybox(framework::SKYBOXTEXTURES);
 
     for (int i = 0; i < 2; i++)
     {
@@ -241,6 +245,8 @@ int main()
         shader.SetUniformMat4f("u_Model", terrainModelMatrix);
         shader.SetUniformMat4f("u_Projection", proj);
         renderer.Draw(vao, ibo, shader);
+
+        skybox.Draw(skyboxShader, framework::camera->GetViewMatrix(), proj);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

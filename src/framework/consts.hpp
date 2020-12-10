@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 #include <string>
+#include <vector>
 
 namespace framework
 {
@@ -54,6 +55,62 @@ namespace framework
 	const std::string SOUNDTRACKPATH = "../res/Music/TimeAlone.mp3";
 	const float MUSICVOLUME = 0.2f;
 
+	const std::string SKYBOXVERTSHADERPATH = "../res/Shaders/skybox.vert";
+	const std::string SKYBOXFRAGSHADERPATH = "../res/Shaders/skybox.frag";
+
+	const std::vector<std::string> SKYBOXTEXTURES
+	{
+		"../res/Skybox/right.jpg",
+		"../res/Skybox/left.jpg",
+		"../res/Skybox/up.jpg",
+		"../res/Skybox/down.jpg",
+		"../res/Skybox/forward.jpg",
+		"../res/Skybox/back.jpg"
+	};
+
+	const float SKYBOXVERTICES[] = {
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
 
 	
 	//-------------------------------------------------------------------------------------

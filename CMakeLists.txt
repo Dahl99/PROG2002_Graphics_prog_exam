@@ -72,6 +72,9 @@ add_executable(GraphicsExam
 	src/framework/heightmap.hpp
 	src/framework/heightmap.cpp
 	
+	src/framework/skybox.hpp
+	src/framework/skybox.cpp
+	
 	src/framework/consts.hpp
 	src/framework/glutil.hpp
 
