@@ -8,7 +8,6 @@
 #include "vao.hpp"
 #include "vbo.hpp"
 #include "shader.hpp"
-//#include "ibo.hpp"
 
 namespace framework
 {
@@ -19,7 +18,6 @@ namespace framework
 
 		std::unique_ptr<VertexArray> vao;
 		std::unique_ptr<VertexBuffer> vbo;
-		//std::unique_ptr<IndexBuffer> ibo;
 
 	public:
 		Skybox(std::vector<std::string> texturePaths);

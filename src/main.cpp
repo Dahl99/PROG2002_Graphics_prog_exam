@@ -73,12 +73,12 @@ int main()
     framework::VertexBuffer vbo(map.GetVertices());     // Initializing vbo
     framework::IndexBuffer ibo(map.GetIndices());       // Initializing ibo
 
-    framework::VertexBufferLayout vbl;          // Create a vertex buffer layout
-    vbl.Push<GLfloat>(3);                       // Adding position floats to layout
-    vbl.Push<GLfloat>(3);                       // Adding normal floats to layout
-    vbl.Push<GLfloat>(2);                       // Adding tex coords floats to layout
+    framework::VertexBufferLayout vbl;                  // Create a vertex buffer layout
+    vbl.Push<GLfloat>(3);                               // Adding position floats to layout
+    vbl.Push<GLfloat>(3);                               // Adding normal floats to layout
+    vbl.Push<GLfloat>(2);                               // Adding tex coords floats to layout
 
-    vao.AddBuffer(vbo, vbl);					// Populating the vertex buffer
+    vao.AddBuffer(vbo, vbl);					        // Populating the vertex buffer
 
     // Creating sun and moon entity and loading their texture
     std::unique_ptr<framework::Model> sphereModel = std::make_unique<framework::Model>(framework::SPHEREMODELPATH);
@@ -202,6 +202,7 @@ int main()
         ImGui::End();
 
 
+        // Processing input, updating plane movement and lighting uniforms
         ProcessInput(window, dt);
         PlaneMovement(plane, planeLastDirection, dt, yUp);
         UpdateLightingUniforms(shader, sun, moon, dt, daynightCycle, allTime, day);
@@ -370,7 +371,7 @@ void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, cons
         plane.SetPosition(glm::vec3(planePos.x, planePos.y - (plane.GetSpeed() * dt)/4, planePos.z));
     
     /**
-     *  If x is < 1000 or > 1000 plane will randomly change direction either forward or backwards
+     *  If x is < 100 or > 1000 plane will randomly change direction either forward or backwards
      *  The same goes for z except the randomly chosen direction will be either left or right
      */
     if (plane.GetPosition().x > 1000.f && lastDir == framework::Direction::RIGHT)
@@ -436,7 +437,7 @@ void AnimalMovement(framework::Entity& animal, framework::Direction& lastDir, co
     const auto animalPos = animal.GetPosition();
 
     /**
-     *  If x is < 1000 or > 1000 plane will randomly change direction either forward or backwards
+     *  If x is < 300 or > 900 animals will randomly change direction either forward or backwards
      *  The same goes for z except the randomly chosen direction will be either left or right
      */
     if (animal.GetPosition().x > 900.f && lastDir == framework::Direction::RIGHT)
