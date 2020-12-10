@@ -13,6 +13,7 @@ struct PointLight {
 #define NR_POINT_LIGHTS 2
 
 /** Inputs */
+in vec3 v_Color;
 in vec3 v_Normal;
 in vec2 v_TexCoords;
 in vec3 v_FragPos;
@@ -30,16 +31,21 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewPos);
 
 void main()
 {
-	/** Texture */
-	vec4 color = texture(u_Texture, v_TexCoords);
+	vec4 color;
+
+	if (v_Color.x == 0.0)
+		color = texture(u_Texture, v_TexCoords);
+	else
+		color = vec4(v_Color, 1.0);
 
 	/** Calculating lighting from all point lights */
-	vec3 blinn_phong = vec3(0.0);
+	vec3 blinn_phong;
 	for(int i = 0; i < NR_POINT_LIGHTS; i++)
 		blinn_phong += CalcPointLight(u_PointLights[i], normalize(v_Normal), v_FragPos, u_ViewPos);
 
 	vec3 result = (blinn_phong.x + blinn_phong.y + blinn_phong.z) * color.xyz;
 	FragColor = vec4(result, 1.0);
+//	FragColor = v_Color;
 }
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewPos)
@@ -55,7 +61,6 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewPos)
 	vec3 diffuse = diff * light.color;
 
 	/** Blinn-Phong Specular Lighting */
-//	float specularStrength = 0.5;
 	int shininess = 48;
 	vec3 viewDir = normalize(viewPos - fragPos);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
@@ -70,6 +75,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewPos)
 	diffuse  *= attenuation;
 	specular *= attenuation;
 
+//    return (ambient + diffuse + specular);
     return (ambient + diffuse + specular);
 
 } 

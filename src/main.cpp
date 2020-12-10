@@ -13,7 +13,7 @@
 #include "framework/heightmap.hpp"
 
 void ProcessInput(GLFWwindow* window, const float dt);
-void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entities, framework::Entity& sun, 
+void UpdateLightingUniforms(framework::Shader& shader, framework::Entity& sun, 
                             framework::Entity& moon, float& dt, float& daynightCycle, float& allTime);
 
 void PlaneMovement(framework::Entity& plane, framework::Direction& lastDir, const float& dt, bool& yUp);
@@ -148,32 +148,17 @@ int main()
     auto terrainModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f));
     auto proj = glm::perspective(glm::radians(65.f), (float)framework::WINDOWSIZEX / (float)framework::WINDOWSIZEY, 0.1f, 1200.f);
 
-    // Creating shaders: 1 for light sources, 1 for terrain and 1 for textured entities
+    // Creating shaders: 1 for light sources, 1 for terrain and entities
     framework::Shader lightSrcShader(framework::LIGHTSRCVERTSHADERPATH, framework::LIGHTSRCFRAGSHADERPATH);
-    framework::Shader terrainShader(framework::TERRAINVERTSHADERPATH, framework::TERRAINFRAGSHADERPATH);
-    framework::Shader entitiesShader(framework::ENTITIESVERTSHADERPATH, framework::ENTITIESFRAGSHADERPATH);
+    framework::Shader shader(framework::VERTSHADERPATH, framework::FRAGSHADERPATH);
 
     for (int i = 0; i < 2; i++)
     {
-        terrainShader.Bind();
-        terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
-        terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
-        terrainShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
-
-        entitiesShader.Bind();
-        entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
-        entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
-        entitiesShader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
+        shader.Bind();
+        shader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].constant", 1.0f);
+        shader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].linear", 0.0014f);
+        shader.SetUniform1f("u_PointLights[" + std::to_string(i) + "].quadratic", 0.000007f);
     }
-
-    terrainShader.Bind();
-    terrainShader.SetUniformMat4f("u_Model", terrainModelMatrix);
-    terrainShader.SetUniformMat4f("u_Projection", proj);
-    
-    entitiesShader.Bind();
-    entitiesShader.SetUniformMat4f("u_Projection", proj);
-
-
 
 //------------------------------------------------------------------------------------
 //                                  Game loop
@@ -191,7 +176,7 @@ int main()
 
         ProcessInput(window, dt);
         PlaneMovement(plane, planeLastDirection, dt, yUp);
-        UpdateLightingUniforms(terrainShader, entitiesShader, sun, moon, dt, daynightCycle, allTime);
+        UpdateLightingUniforms(shader, sun, moon, dt, daynightCycle, allTime);
 
         // Draw calls
         sunTexture.Bind();
@@ -201,10 +186,14 @@ int main()
         moon.Draw(lightSrcShader, framework::camera->GetViewMatrix(), proj);
 
         pinetreeTexture.Bind();
+        shader.Bind();
+        shader.SetUniform1i("u_isTextured", 1);
         for (auto& pinetree : pinetrees)
-            pinetree->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
+            pinetree->Draw(shader, framework::camera->GetViewMatrix(), proj);
+        pinetreeTexture.Unbind();
 
-        plane.Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
+        shader.SetUniform1i("u_isTextured", 0);
+        plane.Draw(shader, framework::camera->GetViewMatrix(), proj);
 
         for (int i = 0; i < 6; i++)
         {
@@ -215,14 +204,19 @@ int main()
         }
 
         deerTexture.Bind();
+        shader.Bind();
+        shader.SetUniform1i("u_isTextured", 1);
         for (int i = 0; i < 3; i++)
-            animals.at(i)->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
+            animals.at(i)->Draw(shader, framework::camera->GetViewMatrix(), proj);
         
         mooseTexture.Bind();
         for (int i = 3; i < 6; i++)
-            animals.at(i)->Draw(entitiesShader, framework::camera->GetViewMatrix(), proj);
+            animals.at(i)->Draw(shader, framework::camera->GetViewMatrix(), proj);
 
-        renderer.Draw(vao, ibo, terrainShader);
+        shader.SetUniform1i("u_isTextured", 0);
+        shader.SetUniformMat4f("u_Model", terrainModelMatrix);
+        shader.SetUniformMat4f("u_Projection", proj);
+        renderer.Draw(vao, ibo, shader);
 
         glfwSwapBuffers(window);
 
@@ -259,7 +253,7 @@ void ProcessInput(GLFWwindow* window, const float dt)
     }
 }
 
-void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entities, framework::Entity& sun, 
+void UpdateLightingUniforms(framework::Shader& shader, framework::Entity& sun, 
                           framework::Entity& moon, float& dt, float& daynightCycle,
                           float& allTime)
 {
@@ -267,16 +261,11 @@ void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entit
     sun.SetPosition(glm::vec3(glm::cos(allTime) * 700.f + 540.f, glm::sin(allTime) * 700.f, 540.f));
     moon.SetPosition(glm::vec3((glm::cos(allTime + 3.3f) * 700.f + 540.f), glm::sin(allTime + 3.3f) * 700.f, 540.f));
 
-    terrain.Bind();
-    terrain.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
-    terrain.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
-    terrain.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
-    terrain.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
-
-    entities.Bind();
-    entities.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
-    entities.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
-    entities.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
+    shader.Bind();
+    shader.SetUniformMat4f("u_View", framework::camera->GetViewMatrix());
+    shader.SetUniform3fv("u_ViewPos", framework::camera->GetViewPosition());
+    shader.SetUniform3fv("u_PointLights[0].position", sun.GetPosition());
+    shader.SetUniform3fv("u_PointLights[1].position", moon.GetPosition());
 
     daynightCycle += dt;
 
@@ -285,56 +274,35 @@ void UpdateLightingUniforms(framework::Shader& terrain, framework::Shader& entit
 
     if (daynightCycle <= 12.f)          // Setting sun color for dawn
     {
-        terrain.Bind();
-        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
-        terrain.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f));
-
-        entities.Bind();
-        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
-        entities.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f));
+        shader.Bind();
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+        shader.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f));
     }
     else if (daynightCycle <= 24.f)     // Setting sun color for morning
     {
-        terrain.Bind();
-        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
-
-        entities.Bind();
-        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
+        shader.Bind();
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
     }
     else if (daynightCycle <= 36.f)     // Setting sun color for midday
     {
-        terrain.Bind();
-        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f));
-        
-        entities.Bind();
-        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f));
+        shader.Bind();
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f));
     }
     else if (daynightCycle <= 48.f)     // Setting sun color for evening
     {
-        terrain.Bind();
-        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
-
-        entities.Bind();
-        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
-
+        shader.Bind();
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.87f, 0.2f));
     }
     else if (daynightCycle <= 60.f)     // Setting sun color for dusk
     {
-        terrain.Bind();
-        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
-
-        entities.Bind();
-        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
+        shader.Bind();
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(1.0f, 0.25f, 0.1f));
     }
     else if (daynightCycle <= 120.f)    // Setting sun and moon color for night
     {
-        terrain.Bind();
-        terrain.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
-        terrain.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.6f));
-        
-        entities.Bind();
-        entities.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
-        entities.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.6f));
+        shader.Bind();
+        shader.SetUniform3fv("u_PointLights[0].color", glm::vec3(0.f));
+        shader.SetUniform3fv("u_PointLights[1].color", glm::vec3(0.f, 0.f, 0.6f));
     }
     else daynightCycle = 0.0f;
 }
@@ -432,53 +400,29 @@ void AnimalMovement(framework::Entity& animal, framework::Direction& lastDir, co
     if (animal.GetPosition().x > 900.f && lastDir == framework::Direction::RIGHT)
     {
         if (temp == 0)
-        {
             lastDir = framework::Direction::FORWARD;
-            //animal.SetRotation(180.f);
-        }
         else
-        {
             lastDir = framework::Direction::BACK;
-            //animal.SetRotation(0.f);
-        }
     }
     else if (animal.GetPosition().z > 900.f && lastDir == framework::Direction::BACK)
     {
         if (temp == 0)
-        {
             lastDir = framework::Direction::LEFT;
-            //animal.SetRotation(270.f);
-        }
         else
-        {
             lastDir = framework::Direction::RIGHT;
-            //animal.SetRotation(90.f);
-        }
     }
     else if (animal.GetPosition().x < 300.f && lastDir == framework::Direction::LEFT)
     {
         if (temp == 0)
-        {
             lastDir = framework::Direction::FORWARD;
-            //animal.SetRotation(180.f);
-        }
         else
-        {
             lastDir = framework::Direction::BACK;
-            //animal.SetRotation(0.f);
-        }
     }
     else if (animal.GetPosition().z < 300.f && lastDir == framework::Direction::FORWARD)
     {
         if (temp == 0)
-        {
             lastDir = framework::Direction::LEFT;
-            //animal.SetRotation(270.f);
-        }
         else
-        {
             lastDir = framework::Direction::RIGHT;
-            //animal.SetRotation(90.f);
-        }
     }
 }

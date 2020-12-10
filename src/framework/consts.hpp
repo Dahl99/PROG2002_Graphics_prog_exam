@@ -48,11 +48,8 @@ namespace framework
 	const std::string LIGHTSRCVERTSHADERPATH = "../res/Shaders/lightsrc.vert";
 	const std::string LIGHTSRCFRAGSHADERPATH = "../res/Shaders/lightsrc.frag";
 	
-	const std::string TERRAINVERTSHADERPATH = "../res/Shaders/terrain.vert";
-	const std::string TERRAINFRAGSHADERPATH = "../res/Shaders/terrain.frag";
-	
-	const std::string ENTITIESVERTSHADERPATH = "../res/Shaders/entities.vert";
-	const std::string ENTITIESFRAGSHADERPATH = "../res/Shaders/entities.frag";
+	const std::string VERTSHADERPATH = "../res/Shaders/shader.vert";
+	const std::string FRAGSHADERPATH = "../res/Shaders/shader.frag";
 
 	const std::string SOUNDTRACKPATH = "../res/Music/TimeAlone.mp3";
 	const float MUSICVOLUME = 0.2f;
