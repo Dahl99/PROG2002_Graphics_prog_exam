@@ -28,7 +28,7 @@ This exam project was built using the following libraries:
 
 ### Windows
 
-This is an example on how to set up the project locally using Visual Studio 2019 with Cmake addon.
+This is an example on how to set up the project locally using Visual Studio 2019 with CMake addon.
 
 #### Prerequisites
 
