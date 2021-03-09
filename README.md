@@ -1,4 +1,4 @@
-# Assignment 2: 3D Pac-Man
+# PROG2002 Graphics Programming Exam
 
 ## About
 
